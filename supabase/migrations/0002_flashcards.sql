@@ -1,0 +1,113 @@
+-- supabase/migrations/0002_flashcards.sql
+-- FASE — Flashcards con repetición espaciada (SM-2, estilo Anki).
+-- Idempotente. El contenido (frente/reverso) vive aquí; el progreso por alumno
+-- se guarda en flashcard_reviews. Ejecutar en Supabase → SQL Editor.
+
+-- ── Contenido de las tarjetas ──────────────────────────────────────
+create table if not exists public.flashcards (
+  id       text primary key,
+  subject  text not null,
+  front    text not null,
+  back     text not null,
+  hint     text,
+  active   boolean not null default true
+);
+create index if not exists idx_flashcards_subject on public.flashcards (subject);
+
+-- ── Progreso SM-2 por alumno y tarjeta ─────────────────────────────
+create table if not exists public.flashcard_reviews (
+  user_id      text    not null,
+  card_id      text    not null references public.flashcards(id),
+  ease_factor  real    not null default 2.5,
+  interval_days integer not null default 0,
+  repetitions  integer not null default 0,
+  due_date     date    not null default current_date,
+  last_grade   integer,
+  reviewed_at  timestamptz not null default now(),
+  primary key (user_id, card_id)
+);
+create index if not exists idx_fc_reviews_due on public.flashcard_reviews (user_id, due_date);
+
+-- ── Semilla: 80 tarjetas reales del banco de Profe Diego ───────────
+insert into public.flashcards (id, subject, front, back, hint) values
+  ('mat-f001','Matemáticas','Área del triángulo','A = (base × altura) / 2','La mitad del rectángulo'),
+  ('mat-f002','Matemáticas','Área del círculo','A = πr²','Pi por radio al cuadrado'),
+  ('mat-f003','Matemáticas','Perímetro del círculo (circunferencia)','C = 2πr','Dos pi por radio'),
+  ('mat-f004','Matemáticas','Suma de los n primeros naturales','S = n(n+1)/2','Fórmula de Gauss'),
+  ('mat-f005','Matemáticas','¿Qué es el MCM?','El número más pequeño que es múltiplo común de dos o más números.','Mínimo Común Múltiplo'),
+  ('mat-f006','Matemáticas','¿Qué es el MCD?','El mayor número que divide exactamente a dos o más números.','Máximo Común Divisor'),
+  ('mat-f007','Matemáticas','¿Qué es un número primo?','Un número mayor que 1 que sólo es divisible entre 1 y él mismo.','2, 3, 5, 7, 11…'),
+  ('mat-f008','Matemáticas','Teorema de Pitágoras','c² = a² + b², donde c es la hipotenusa.','Solo aplica a triángulos rectángulos'),
+  ('cal-f001','Cálculo','Regla de la potencia','d/dx(xⁿ) = n·xⁿ⁻¹','Baja el exponente y resta uno'),
+  ('cal-f002','Cálculo','Derivada de sen(x)','d/dx[sen(x)] = cos(x)','Seno → Coseno'),
+  ('cal-f003','Cálculo','Derivada de cos(x)','d/dx[cos(x)] = -sen(x)','Coseno → menos Seno'),
+  ('cal-f004','Cálculo','Derivada de eˣ','d/dx(eˣ) = eˣ','Se deriva a sí misma'),
+  ('cal-f005','Cálculo','Derivada de ln(x)','d/dx[ln(x)] = 1/x','Uno sobre x'),
+  ('cal-f006','Cálculo','¿Qué es un límite?','El valor al que se aproxima una función f(x) cuando x tiende a cierto valor.','Comportamiento cercano, no en el punto'),
+  ('cal-f007','Cálculo','¿Qué es la integral definida?','El área neta bajo la curva entre dos puntos a y b.','∫ₐᵇ f(x) dx'),
+  ('cal-f008','Cálculo','Regla de la cadena','Si f = g(h(x)), entonces f''(x) = g''(h(x)) · h''(x).','Derivada exterior × derivada interior'),
+  ('alg-f001','Álgebra','(a + b)² =','a² + 2ab + b²','No olvides el término del medio'),
+  ('alg-f002','Álgebra','(a - b)² =','a² - 2ab + b²','El término del medio es negativo'),
+  ('alg-f003','Álgebra','Diferencia de cuadrados: a² - b² =','(a + b)(a - b)','Suma por diferencia'),
+  ('alg-f004','Álgebra','Fórmula general / cuadrática','x = (-b ± √(b²-4ac)) / 2a','Para ax²+bx+c=0'),
+  ('alg-f005','Álgebra','¿Qué es el discriminante?','Δ = b² - 4ac. Si Δ>0: 2 raíces reales; Δ=0: 1 raíz; Δ<0: sin raíces reales.','Lo que está dentro de la raíz'),
+  ('alg-f006','Álgebra','¿Qué es factorizar?','Expresar un polinomio como producto de sus factores primos o simples.','Inverso a multiplicar'),
+  ('alg-f007','Álgebra','¿Qué es un sistema de ecuaciones?','Conjunto de dos o más ecuaciones con las mismas incógnitas que se resuelven simultáneamente.','Varias ecuaciones, mismas variables'),
+  ('alg-f008','Álgebra','Factoriza x² - 5x + 6','(x - 2)(x - 3)','Busca dos números que sumen -5 y multipliquen 6'),
+  ('fis-f001','Física','Segunda ley de Newton','F = m·a (Fuerza = masa × aceleración)','Base de la dinámica clásica'),
+  ('fis-f002','Física','Energía cinética','Ec = ½·m·v²','Mitad de masa por velocidad al cuadrado'),
+  ('fis-f003','Física','Energía potencial gravitacional','Ep = m·g·h','Masa × gravedad × altura'),
+  ('fis-f004','Física','Trabajo mecánico','W = F·d·cos(θ)','Fuerza por desplazamiento en la misma dirección'),
+  ('fis-f005','Física','¿Qué es la inercia?','Tendencia de los cuerpos a mantener su estado de reposo o movimiento uniforme.','1ª ley de Newton'),
+  ('fis-f006','Física','Velocidad media','v = Δx / Δt (distancia sobre tiempo)','Espacio entre tiempo'),
+  ('fis-f007','Física','¿Qué es la aceleración?','Cambio en la velocidad por unidad de tiempo: a = Δv/Δt. Se mide en m/s².','Variación de velocidad'),
+  ('fis-f008','Física','¿Qué es la tercera ley de Newton?','A toda acción le corresponde una reacción igual y opuesta.','Acción-reacción'),
+  ('qui-f001','Química','¿Qué es un átomo?','La unidad más pequeña de un elemento que conserva sus propiedades químicas.','Núcleo + electrones'),
+  ('qui-f002','Química','¿Qué es el número atómico (Z)?','El número de protones en el núcleo de un átomo.','Define al elemento'),
+  ('qui-f003','Química','¿Qué es el número de masa (A)?','A = número de protones + número de neutrones.','Protones + neutrones'),
+  ('qui-f004','Química','¿Qué es un mol?','La cantidad de sustancia que contiene 6.022×10²³ partículas (número de Avogadro).','6.022×10²³'),
+  ('qui-f005','Química','Escala de pH','0-6: ácido | 7: neutro | 8-14: básico/alcalino','7 es el centro'),
+  ('qui-f006','Química','Cálculo de moles','n = m / M (moles = masa en gramos / masa molar)','Gramos entre g/mol'),
+  ('qui-f007','Química','¿Qué es un enlace iónico?','Enlace que se forma por transferencia de electrones entre un metal y un no metal.','Metal + no metal'),
+  ('qui-f008','Química','¿Qué es la tabla periódica?','Ordenación de los elementos por número atómico creciente, agrupados por propiedades similares.','118 elementos organizados'),
+  ('bio-f001','Biología','¿Qué es la célula eucariota?','Célula con núcleo definido rodeado de membrana nuclear, presente en animales, plantas, hongos y protistas.','Núcleo verdadero'),
+  ('bio-f002','Biología','¿Qué es la célula procariota?','Célula sin núcleo definido ni organelos membranosos. Ejemplo: bacterias y arqueas.','Sin núcleo'),
+  ('bio-f003','Biología','¿Qué es el ADN?','Ácido desoxirribonucleico. Molécula de doble hélice que almacena la información genética.','Doble hélice'),
+  ('bio-f004','Biología','Fotosíntesis (ecuación resumida)','6CO₂ + 6H₂O + luz → C₆H₁₂O₆ + 6O₂','CO₂ + agua + luz → glucosa + oxígeno'),
+  ('bio-f005','Biología','¿Qué es la mitosis?','División celular que produce dos células hijas idénticas a la célula madre (misma carga cromosómica).','Reproducción celular asexual'),
+  ('bio-f006','Biología','¿Qué es la meiosis?','División celular que produce cuatro células haploides (gametos) con la mitad de cromosomas.','Para reproducción sexual'),
+  ('bio-f007','Biología','¿Qué es el ARN mensajero?','Molécula que copia la información del ADN y la lleva al ribosoma para sintetizar proteínas.','Mensajero del núcleo al ribosoma'),
+  ('bio-f008','Biología','¿Función de la mitocondria?','Producir energía en forma de ATP mediante la respiración celular aeróbica.','Central energética de la célula'),
+  ('his-f001','Historia','¿Cuándo inició el movimiento de Independencia?','16 de septiembre de 1810, con el Grito de Dolores de Miguel Hidalgo.','El Grito de Dolores'),
+  ('his-f002','Historia','¿Cuándo se consumó la Independencia?','27 de septiembre de 1821, con la entrada del Ejército Trigarante a la Ciudad de México.','Plan de Iguala'),
+  ('his-f003','Historia','¿Qué fue la Revolución Mexicana?','Movimiento armado (1910-1920) que derrocó a Porfirio Díaz y llevó a la Constitución de 1917.','1910-1920'),
+  ('his-f004','Historia','¿Qué es el Porfiriato?','Período de gobierno de Porfirio Díaz (1876-1911), que combinó modernización con autoritarismo.','Más de 30 años de gobierno'),
+  ('his-f005','Historia','¿Qué fue el Virreinato?','Período colonial (1521-1821) en que México (Nueva España) fue gobernado por virreyes al servicio de España.','300 años de colonialismo'),
+  ('his-f006','Historia','¿Quiénes fundaron Tenochtitlán?','Los mexicas (aztecas) en 1325 sobre un islote en el lago de Texcoco.','1325 d.C.'),
+  ('his-f007','Historia','¿Qué son las Leyes de Reforma?','Conjunto de leyes (1855-1863) que separaron la Iglesia del Estado y secularizaron la vida pública en México.','Juárez vs. la Iglesia'),
+  ('his-f008','Historia','¿Cuáles eran los líderes principales de la Revolución Mexicana?','Francisco I. Madero, Emiliano Zapata, Francisco Villa, Venustiano Carranza y Álvaro Obregón.','Cinco líderes clave'),
+  ('esp-f001','Español','¿Qué es la metáfora?','Figura retórica que identifica dos elementos sin usar ''como''. Ej: ''Sus ojos son dos luceros''.','Comparación directa sin ''como'''),
+  ('esp-f002','Español','¿Qué es el símil?','Figura que compara dos elementos usando ''como'' u otro nexo comparativo. Ej: ''Ojos como estrellas''.','Comparación con ''como'''),
+  ('esp-f003','Español','Regla de las palabras esdrújulas','Las palabras esdrújulas (acento en antepenúltima sílaba) SIEMPRE llevan tilde. Ej: rápido, médico, sílaba.','Siempre con tilde'),
+  ('esp-f004','Español','Regla de las palabras graves','Las palabras graves (acento en penúltima sílaba) llevan tilde cuando NO terminan en vocal, n o s. Ej: árbol, fácil.','Sin tilde si termina en vocal, n o s'),
+  ('esp-f005','Español','¿Qué es la hipérbole?','Figura retórica que exagera un hecho para dar énfasis. Ej: ''Te lo he dicho un millón de veces''.','Exageración expresiva'),
+  ('esp-f006','Español','Tipos de narrador','Omnisciente (todo lo sabe), protagonista (1ª persona), testigo (3ª persona externa), 2ª persona.','Por perspectiva y conocimiento'),
+  ('esp-f007','Español','¿Qué es el texto argumentativo?','Texto que busca convencer al lector mediante tesis, argumentos y conclusión.','Tesis + argumentos + conclusión'),
+  ('esp-f008','Español','¿Qué son los antónimos?','Palabras con significado opuesto. Ej: grande/pequeño, frío/caliente.','Lo contrario de sinónimos'),
+  ('ipn-f001','Admisión IPN','Estructura del examen COMIPEMS (IPN)','El examen COMIPEMS tiene 128 reactivos de opción múltiple en: Matemáticas, Español, Ciencias (Física, Química, Biología), Historia y Geografía.','128 reactivos'),
+  ('ipn-f002','Admisión IPN','Fórmula de velocidad-distancia-tiempo','v = d/t → d = v×t → t = d/v','Velocidad = distancia / tiempo'),
+  ('ipn-f003','Admisión IPN','¿Cómo resolver problemas de mezclas?','Plantear: (cantidad₁×%₁ + cantidad₂×%₂) / (cantidad₁+cantidad₂) = %final','Concentración final = suma ponderada'),
+  ('ipn-f004','Admisión IPN','Números en notación científica','a × 10ⁿ, donde 1 ≤ a < 10. Ej: 3,000,000 = 3×10⁶','Un dígito antes del decimal'),
+  ('ipn-f005','Admisión IPN','Regla de los signos en multiplicación','(+)(+)=+, (-)(-) =+, (+)(-)=-, (-)(+)=-','Iguales: positivo. Distintos: negativo.'),
+  ('ipn-f006','Admisión IPN','Área de figuras comunes','Triángulo: b×h/2 | Cuadrado: l² | Rectángulo: b×h | Círculo: πr²','Las 4 más frecuentes en el examen'),
+  ('ipn-f007','Admisión IPN','¿Qué es el IPN?','Instituto Politécnico Nacional, institución pública de educación media superior, superior e investigación fundada en 1936.','Politécnico Nacional'),
+  ('ipn-f008','Admisión IPN','Crecimiento exponencial','Si algo se duplica cada t horas: cantidad = inicial × 2^(tiempo/t)','Potencia de 2'),
+  ('una-f001','Admisión UNAM','¿Cuándo fue fundada la UNAM?','22 de septiembre de 1910, durante el gobierno de Porfirio Díaz, impulsada por Justo Sierra.','1910, centenario de la Independencia'),
+  ('una-f002','Admisión UNAM','Lema de la UNAM','''Por mi raza hablará el espíritu'', acuñado por José Vasconcelos en 1921.','José Vasconcelos'),
+  ('una-f003','Admisión UNAM','¿Qué bachilleratos ofrece la UNAM?','ENP (Escuela Nacional Preparatoria) y CCH (Colegio de Ciencias y Humanidades).','ENP y CCH'),
+  ('una-f004','Admisión UNAM','Factorial de n','n! = n × (n-1) × (n-2) × … × 2 × 1. Ej: 5! = 120','Producto descendente hasta 1'),
+  ('una-f005','Admisión UNAM','¿Qué es la autonomía universitaria?','Derecho de la UNAM a gobernarse sin intervención del Estado en materia académica y administrativa. Otorgada en 1929.','Independencia del gobierno'),
+  ('una-f006','Admisión UNAM','Movimiento estudiantil de 1968','Movimiento que culminó el 2 de octubre de 1968 en la Plaza de Tlatelolco con una represión masiva.','2 de octubre'),
+  ('una-f007','Admisión UNAM','Octavio Paz','Poeta y ensayista mexicano (1914-1998), Premio Nobel de Literatura 1990. Autor de ''El laberinto de la soledad''.','Nobel de Literatura mexicano'),
+  ('una-f008','Admisión UNAM','Ecuación de posición (MRUA)','x = x₀ + v₀·t + ½·a·t²','Posición inicial + velocidad×tiempo + mitad×aceleración×tiempo²')
+on conflict (id) do nothing;
