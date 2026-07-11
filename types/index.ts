@@ -9,6 +9,15 @@ export interface Profile {
   role: Role
   is_active: boolean
   avatar_url: string | null
+  // ── Perfil personalizable (todos opcionales: compatibilidad con usuarios previos) ──
+  phone?: string | null
+  city?: string | null
+  bio?: string | null
+  school?: string | null          // escuela / plantel de interés
+  target_exam?: string | null     // COMIPEMS, IPN, UNAM, UAM...
+  instagram?: string | null
+  tiktok?: string | null
+  facebook?: string | null
   created_at: string
   updated_at: string
 }

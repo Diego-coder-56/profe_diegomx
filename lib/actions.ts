@@ -448,3 +448,66 @@ export async function shareMyFlashcardAction(id: string, shared: boolean) {
   revalidatePath('/dashboard/flashcards/mis')
   return { success: true }
 }
+
+// ═════════════════════════════════════════════════════════════════
+// Usuarios: alta desde admin + perfil editable del alumno
+// ═════════════════════════════════════════════════════════════════
+import { createUser as dbCreateUser, getUserByEmail } from '@/lib/db'
+import { hashPassword } from '@/lib/auth'
+import type { Profile } from '@/types'
+
+/** El admin da de alta un alumno (o profesor) con correo y contraseña. */
+export async function createUserAction(data: {
+  full_name: string; email: string; password: string; role?: Role
+}) {
+  const s = await requireAdmin()
+  const email = data.email.trim().toLowerCase()
+  if (!data.full_name.trim()) return { ok: false, error: 'El nombre es obligatorio.' }
+  if (!email.includes('@')) return { ok: false, error: 'Correo inválido.' }
+  if ((data.password ?? '').length < 6) return { ok: false, error: 'La contraseña debe tener al menos 6 caracteres.' }
+
+  const existing = await getUserByEmail(email)
+  if (existing) return { ok: false, error: 'Ya existe un usuario con ese correo.' }
+
+  const now = new Date().toISOString()
+  const id = `u_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`
+  await dbCreateUser({
+    id, email, full_name: data.full_name.trim(),
+    role: (data.role ?? 'student') as Role,
+    is_active: true, avatar_url: null,
+    password_hash: await hashPassword(data.password),
+    created_at: now, updated_at: now,
+  } as any)
+  await audit(s, 'user.created', 'user', id, email)
+  revalidatePath('/admin/usuarios')
+  return { ok: true }
+}
+
+/** El admin restablece la contraseña de un usuario. */
+export async function resetPasswordAction(userId: string, newPassword: string) {
+  const s = await requireAdmin()
+  if ((newPassword ?? '').length < 6) return { ok: false, error: 'La contraseña debe tener al menos 6 caracteres.' }
+  await updateUser(userId, { password_hash: await hashPassword(newPassword) } as any)
+  await audit(s, 'user.password_reset', 'user', userId)
+  return { ok: true }
+}
+
+/** El alumno edita su propio perfil (nunca su rol ni su estado). */
+export async function updateMyProfileAction(data: {
+  full_name?: string; avatar_url?: string; phone?: string; city?: string
+  bio?: string; school?: string; target_exam?: string
+  instagram?: string; tiktok?: string; facebook?: string
+}) {
+  const session = await getSession()
+  if (!session) throw new Error('No autenticado')
+  const clean = (v?: string) => (v ?? '').trim() || null
+  await updateUser(session.sub, {
+    full_name: clean(data.full_name) ?? undefined,
+    avatar_url: clean(data.avatar_url),
+    phone: clean(data.phone), city: clean(data.city), bio: clean(data.bio),
+    school: clean(data.school), target_exam: clean(data.target_exam),
+    instagram: clean(data.instagram), tiktok: clean(data.tiktok), facebook: clean(data.facebook),
+  } as Partial<Profile>)
+  revalidatePath('/dashboard/perfil'); revalidatePath('/dashboard')
+  return { ok: true }
+}

@@ -705,3 +705,29 @@ export async function getAdminStats(): Promise<{
     },
   }
 }
+
+// ── Clases gratis (vitrina pública, sin cuenta) ────────────────────
+export interface FreeLesson {
+  id: string; title: string; description: string | null; video_url: string | null
+  duration_sec: number; course_title: string; course_slug: string; course_color?: string | null
+}
+/** Clases marcadas como gratis, de cursos publicados. No requiere sesión. */
+export async function listFreeLessons(limit = 12): Promise<FreeLesson[]> {
+  try {
+    const courses = await listCourses(true)          // solo publicados
+    const out: FreeLesson[] = []
+    for (const c of courses) {
+      const lessons = await getLessonsByCourse(c.id) // excluye borradas
+      for (const l of lessons.filter(l => l.is_free)) {
+        out.push({
+          id: l.id, title: l.title, description: l.description,
+          video_url: l.video_url, duration_sec: l.duration_sec,
+          course_title: c.title, course_slug: c.slug, course_color: c.color ?? null,
+        })
+      }
+    }
+    return out.slice(0, limit)
+  } catch {
+    return []
+  }
+}
