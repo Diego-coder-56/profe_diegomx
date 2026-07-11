@@ -7,7 +7,7 @@ import Link from 'next/link'
 import Counter from '@/components/marketing/Counter'
 import {
   Flame, Star, Trophy, ArrowRight, BookOpen, Layers, ListChecks,
-  Target, Medal, BarChart3, Award, Lock, BrainCircuit, CreditCard,
+  Target, Medal, BarChart3, Award, Lock, BrainCircuit, CreditCard, UserCircle,
 } from 'lucide-react'
 import type { GameState } from '@/lib/gamification'
 
@@ -106,6 +106,7 @@ export default function StudentGamePanel({
         <QuickTile icon={Medal}        label="Logros"       href="/dashboard/logros" />
         <QuickTile icon={BrainCircuit} label="Tutor IA"     href="/dashboard/tutor" />
         <QuickTile icon={CreditCard}   label="Mi membresía" href="/dashboard/membresia" />
+        <QuickTile icon={UserCircle}   label="Mi perfil"    href="/dashboard/perfil" />
       </div>
     </div>
   )

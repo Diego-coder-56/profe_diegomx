@@ -4,11 +4,11 @@ import { useState, useTransition } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Search, ChevronDown, ToggleLeft, ToggleRight,
-  BookOpen, ShieldCheck, User, Mail
+  BookOpen, ShieldCheck, User, Mail, Plus, X, Check
 } from 'lucide-react'
 import {
   updateUserRole, toggleUserActive,
-  grantCourseAccess, revokeCourseAccess
+  grantCourseAccess, revokeCourseAccess, createUserAction
 } from '@/lib/actions'
 import { getInitials } from '@/lib/utils'
 import type { Profile } from '@/types'
@@ -24,10 +24,26 @@ export default function UserManagementClient({ profiles, courses, allAccess }: P
   const [expandedId, setExpandedId]  = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   const [toast, setToast]            = useState<{ msg: string; type?: 'success' | 'error' } | null>(null)
+  const [newModal, setNewModal]      = useState(false)
+  const [nf, setNf]                  = useState({ full_name: '', email: '', password: '', role: 'student' })
+  const [nErr, setNErr]              = useState('')
 
   const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
     setToast({ msg, type })
     setTimeout(() => setToast(null), 3000)
+  }
+
+  const createUser = () => {
+    setNErr('')
+    startTransition(async () => {
+      const r = await createUserAction({
+        full_name: nf.full_name, email: nf.email, password: nf.password, role: nf.role as any,
+      })
+      if (!r.ok) { setNErr(r.error ?? 'No se pudo crear el usuario.'); return }
+      setNewModal(false)
+      setNf({ full_name: '', email: '', password: '', role: 'student' })
+      showToast('Usuario creado correctamente')
+    })
   }
 
   const filtered = profiles.filter(p =>
@@ -56,17 +72,69 @@ export default function UserManagementClient({ profiles, courses, allAccess }: P
         )}
       </AnimatePresence>
 
-      {/* Search */}
-      <div className="relative mb-5">
-        <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-        <input
-          type="text"
-          placeholder="Buscar por nombre o correo..."
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          className="w-full pl-9 pr-4 py-2.5 text-[14px] bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-400 transition-all shadow-card"
-        />
+      {/* Search + Nuevo usuario */}
+      <div className="flex gap-2 mb-5">
+        <div className="relative flex-1">
+          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input
+            type="text"
+            placeholder="Buscar por nombre o correo..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="w-full pl-9 pr-4 py-2.5 text-[14px] bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-400 transition-all shadow-card"
+          />
+        </div>
+        <button onClick={() => { setNErr(''); setNewModal(true) }}
+          className="inline-flex items-center gap-2 px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-semibold text-[14px] shadow-sm shrink-0 transition-colors">
+          <Plus size={16} /> Nuevo usuario
+        </button>
       </div>
+
+      {/* Modal: crear usuario */}
+      {newModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" onClick={() => !isPending && setNewModal(false)}>
+          <div className="bg-white rounded-3xl shadow-xl w-full max-w-md p-6" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="text-lg font-extrabold text-slate-900">Nuevo usuario</h3>
+              <button onClick={() => setNewModal(false)} className="p-1.5 hover:bg-slate-100 rounded-lg"><X size={18} className="text-slate-500" /></button>
+            </div>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-[13px] font-semibold text-slate-600 mb-1">Nombre completo</label>
+                <input value={nf.full_name} onChange={e => setNf({ ...nf, full_name: e.target.value })} placeholder="Ana López"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-[14px] focus:outline-none focus:border-brand-400" />
+              </div>
+              <div>
+                <label className="block text-[13px] font-semibold text-slate-600 mb-1">Correo</label>
+                <input value={nf.email} onChange={e => setNf({ ...nf, email: e.target.value })} placeholder="ana@correo.com"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-[14px] focus:outline-none focus:border-brand-400" />
+              </div>
+              <div>
+                <label className="block text-[13px] font-semibold text-slate-600 mb-1">Contraseña (mínimo 6 caracteres)</label>
+                <input value={nf.password} onChange={e => setNf({ ...nf, password: e.target.value })} placeholder="Contraseña con la que entrará"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-[14px] focus:outline-none focus:border-brand-400" />
+                <p className="text-[11px] text-slate-400 mt-1">Compártesela al alumno; él podrá usarla para entrar.</p>
+              </div>
+              <div>
+                <label className="block text-[13px] font-semibold text-slate-600 mb-1">Rol</label>
+                <select value={nf.role} onChange={e => setNf({ ...nf, role: e.target.value })}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-[14px] bg-white focus:outline-none focus:border-brand-400">
+                  <option value="student">Alumno</option>
+                  <option value="teacher">Profesor</option>
+                  <option value="admin">Administrador</option>
+                </select>
+              </div>
+              {nErr && <p className="text-[13px] text-red-500">{nErr}</p>}
+            </div>
+            <div className="flex gap-3 mt-6">
+              <button onClick={() => setNewModal(false)} disabled={isPending} className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-semibold text-[14px] hover:bg-slate-50">Cancelar</button>
+              <button onClick={createUser} disabled={isPending} className="flex-1 inline-flex items-center justify-center gap-2 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-[14px] disabled:opacity-60">
+                <Check size={16} /> {isPending ? 'Creando…' : 'Crear usuario'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Table */}
       <div className="bg-white rounded-2xl border border-slate-100 shadow-card overflow-hidden">
