@@ -13,7 +13,7 @@ import PerfRadar from '@/components/marketing/PerfRadar'
 import LiveActivity from '@/components/marketing/LiveActivity'
 import {
   ArrowRight, Rocket, Target, BrainCircuit, Trophy, Radar as RadarIcon,
-  ListChecks, Check, X, Medal, Flame, GraduationCap, Sparkles, BookOpen,
+  ListChecks, Check, X, Medal, Flame, GraduationCap, Sparkles, BookOpen, PlayCircle,
 } from 'lucide-react'
 import { listCourses, seedIfNeeded } from '@/lib/db'
 import type { Course } from '@/types'
@@ -111,6 +111,9 @@ export default async function LandingPage() {
                 <a href="#simulador" className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white hover:bg-slate-50 text-slate-700 rounded-2xl font-semibold text-[15px] border border-slate-200 shadow-card hover:shadow-card-hover transition-all duration-200">
                   <Target size={17} className="text-brand-600" /> Probar Simulador Gratis
                 </a>
+                <Link href="/clases-gratis" className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-2xl font-semibold text-[15px] border border-emerald-200 transition-all duration-200">
+                  <PlayCircle size={17} /> Ver Clases Gratis
+                </Link>
               </div>
 
               {/* Métricas */}
