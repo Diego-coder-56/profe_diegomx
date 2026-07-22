@@ -511,3 +511,33 @@ export async function updateMyProfileAction(data: {
   revalidatePath('/dashboard/perfil'); revalidatePath('/dashboard')
   return { ok: true }
 }
+
+// ═════════════════════════════════════════════════════════════════
+// Reto diario tipo Duolingo
+// ═════════════════════════════════════════════════════════════════
+import { markDoneToday, getDailyTopic, generateDailyQuestions } from '@/lib/daily'
+import { grantXp } from '@/lib/gamification'
+
+/** Pide al servidor las preguntas del reto de hoy (generadas por IA). */
+export async function getDailyQuestionsAction() {
+  const session = await getSession()
+  if (!session) throw new Error('No autenticado')
+  const topic = getDailyTopic()
+  const questions = await generateDailyQuestions(topic)
+  return { topic, questions }
+}
+
+/** El alumno termina el reto: registra, da XP y mantiene racha (una vez al día). */
+export async function completeDailyAction(score: number, total: number) {
+  const session = await getSession()
+  if (!session) throw new Error('No autenticado')
+  const first = await markDoneToday(session.sub, score, total)
+  if (first) {
+    // XP proporcional a los aciertos + bono por completar. touchStreak se llama dentro de grantXp.
+    const xp = 20 + score * 10
+    await grantXp(session.sub, xp, 'daily_login', { email: session.email })
+    revalidatePath('/dashboard'); revalidatePath('/dashboard/reto-diario')
+    return { ok: true, alreadyDone: false, xp }
+  }
+  return { ok: true, alreadyDone: true, xp: 0 }
+}

@@ -97,6 +97,7 @@ export default function StudentGamePanel({
 
       {/* Accesos rápidos */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <QuickTile icon={Flame}        label="Reto diario"  href="/dashboard/reto-diario" />
         <QuickTile icon={BookOpen}     label="Cursos"       href="#mis-cursos" />
         <QuickTile icon={Layers}       label="Flashcards"   href="/dashboard/flashcards" />
         <QuickTile icon={ListChecks}   label="Quiz"         href="/dashboard/quiz" />

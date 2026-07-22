@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { getSession } from '@/lib/session'
 import { listCourses, getUserCourseIds, getUserById } from '@/lib/db'
 import { getUserGameState } from '@/lib/gamification'
+import { hasDoneToday, getDailyTopic } from '@/lib/daily'
 import StudentGamePanel from '@/components/student/dashboard/StudentGamePanel'
 import Link from 'next/link'
 import { BookOpen, Lock, ArrowRight, GraduationCap } from 'lucide-react'
@@ -28,9 +29,30 @@ export default async function DashboardPage() {
 
   // Gamificación (degrada a ceros si Supabase aún no está configurado)
   const gameState = await getUserGameState(session.sub, session.email, fullName ?? undefined)
+  const dailyDone = await hasDoneToday(session.sub)
+  const dailyTopic = getDailyTopic()
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+      {/* Reto diario / racha */}
+      {!dailyDone && (
+        <Link href="/dashboard/reto-diario"
+          className="group flex items-center justify-between gap-4 bg-gradient-to-r from-orange-500 to-red-500 rounded-2xl shadow-lg shadow-orange-500/20 p-4 sm:p-5 text-white mb-6 hover:shadow-xl transition-all">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="text-3xl shrink-0">🔥</div>
+            <div className="min-w-0">
+              <p className="font-extrabold text-[15px] sm:text-[16px]">
+                {gameState.currentStreak > 0 ? `¡No pierdas tu racha de ${gameState.currentStreak} día${gameState.currentStreak !== 1 ? 's' : ''}!` : 'Comienza tu racha hoy'}
+              </p>
+              <p className="text-[12px] text-orange-50 truncate">Reto de hoy: {dailyTopic.emoji} {dailyTopic.topic}</p>
+            </div>
+          </div>
+          <span className="inline-flex items-center gap-1.5 bg-white text-orange-600 font-bold text-[13px] px-4 py-2 rounded-xl shrink-0 group-hover:gap-2.5 transition-all">
+            Hacer reto <ArrowRight size={15} />
+          </span>
+        </Link>
+      )}
+
       <StudentGamePanel
         name={firstName}
         state={gameState}
