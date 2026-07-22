@@ -1,0 +1,80 @@
+{
+  "_meta": { "fuente": "Temario de Estudio para el Ingreso al IPN — Secretaría Académica, IPN", "materias": 7 },
+  "matematicas": {
+    "label": "Matemáticas", "emoji": "📐",
+    "temas": [
+      "Sucesiones numéricas", "Secuencias alfanuméricas", "Secuencias con patrones geométricos",
+      "Operaciones de simetría", "Medida de figuras y objetos", "Análisis de datos",
+      "Resolución de problemas", "Propiedades de los números reales", "Operaciones básicas", "Proporciones",
+      "Lenguaje algebraico", "Expresiones fraccionarias", "Leyes de exponentes y radicales",
+      "Productos notables", "Métodos de factorización", "Concepto de función",
+      "Ecuaciones lineales", "Sistemas de ecuaciones lineales", "Función cuadrática", "Ecuaciones cuadráticas"
+    ]
+  },
+  "geometria": {
+    "label": "Geometría y Trigonometría", "emoji": "📏",
+    "temas": [
+      "Funciones exponenciales y logarítmicas", "Elementos básicos de geometría", "Triángulos",
+      "Polígonos", "Circunferencia", "Representación gráfica de funciones trigonométricas",
+      "Identidades trigonométricas", "Razones trigonométricas", "Plano cartesiano", "Línea recta",
+      "Cónicas: circunferencia", "Parábola", "Elipse", "Hipérbola", "Coordenadas polares"
+    ]
+  },
+  "calculo": {
+    "label": "Cálculo", "emoji": "∫",
+    "temas": [
+      "Dominio y rango", "Desigualdades", "Definición de límite", "Teoremas de límites",
+      "Límites al infinito", "Continuidad de una función", "Definición de derivada",
+      "Interpretación geométrica de la derivada", "Fórmulas de derivadas", "Regla de la cadena",
+      "Máximos y mínimos", "Integral indefinida", "Métodos de integración", "Teorema fundamental del cálculo",
+      "Área bajo la curva"
+    ]
+  },
+  "fisica": {
+    "label": "Física", "emoji": "⚛️",
+    "temas": [
+      "Sistemas de unidades y mediciones", "Magnitudes vectoriales y escalares", "Suma de vectores",
+      "Estática y equilibrio", "Cinemática: MRU y MRUA", "Caída libre y tiro vertical", "Movimiento parabólico",
+      "Primera ley de Newton", "Segunda ley de Newton", "Tercera ley de Newton", "Fricción",
+      "Trabajo mecánico y potencia", "Energía mecánica", "Ley de gravitación universal",
+      "Densidad y peso específico", "Ley de Hooke", "Principio de Pascal", "Principio de Arquímedes",
+      "Principio de Bernoulli", "Calor y temperatura", "Dilatación", "Leyes de la termodinámica",
+      "Ley de Coulomb", "Campo eléctrico", "Ley de Ohm", "Circuitos resistivos", "Leyes de Kirchhoff",
+      "Electromagnetismo", "Ley de Faraday", "Óptica: reflexión y refracción"
+    ]
+  },
+  "quimica": {
+    "label": "Química", "emoji": "🧪",
+    "temas": [
+      "Fenómenos físicos y químicos", "Estados de agregación", "Métodos de separación de mezclas",
+      "Modelos atómicos", "Números cuánticos", "Tabla periódica", "Propiedades periódicas",
+      "Enlace químico", "Nomenclatura inorgánica", "Reacciones químicas inorgánicas",
+      "Balanceo de ecuaciones", "Estequiometría", "Reactivo limitante", "Compuestos orgánicos",
+      "Hibridación del carbono", "Isomería", "Nomenclatura orgánica (alcanos, alquenos, alquinos)",
+      "Estado gaseoso: leyes de los gases", "Disoluciones y concentración", "Termoquímica",
+      "Velocidad de reacción", "Equilibrio químico", "Ácidos y bases", "pH y pOH", "Electroquímica"
+    ]
+  },
+  "biologia": {
+    "label": "Biología", "emoji": "🧬",
+    "temas": [
+      "Concepto y ramas de la Biología", "Método científico", "Niveles de organización",
+      "Teoría celular", "Estructura celular y su función", "Metabolismo: anabolismo y catabolismo",
+      "División celular: mitosis y meiosis", "Reproducción sexual y asexual", "Genética mendeliana",
+      "Teorías evolutivas", "Clasificación de los cinco reinos", "Ecosistema y factores bióticos/abióticos",
+      "Ciclos biogeoquímicos", "Cadenas y redes alimenticias", "Biomoléculas", "Fotosíntesis",
+      "Respiración celular", "Tejidos animales", "Aparatos del cuerpo humano", "Sistema endócrino y hormonas",
+      "Sistema nervioso", "Gametogénesis", "Leyes de Mendel", "Mutaciones", "Selección natural"
+    ]
+  },
+  "espanol": {
+    "label": "Español y Comunicación", "emoji": "📝",
+    "temas": [
+      "Estructura de textos informativos", "Interpretación e inferencia de ideas", "Intención comunicativa",
+      "Textos literarios: narrativo y poético", "Figuras retóricas", "Texto periodístico y noticia",
+      "Concordancia gramatical", "Coherencia y cohesión", "Sinónimos", "Antónimos", "Homófonos",
+      "Reglas ortográficas", "Acentuación", "Uso de grafías", "Signos de puntuación",
+      "Vicios del lenguaje", "Uso de conectores", "Redacción académica"
+    ]
+  }
+}
